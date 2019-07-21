@@ -15,7 +15,6 @@ class Deck(object):
         self.digits = {1: 3, 2: 2, 3: 2, 4: 2, 5: 1}
 
         self.unique_cards_complete = []  # List of unique cards in a complete deck
-        self.n_cards_complete = {}  # Number of each card in a complete deck
         self.cards_complete = []  # Ordered list of cards in a complete deck
 
         for colour in self.colours:
@@ -23,20 +22,17 @@ class Deck(object):
                 card = (colour, i)
 
                 self.unique_cards_complete.append(card)
-                self.n_cards_complete[card] = self.digits[i]
                 self.cards_complete += self.digits[i] * [card]
 
-        self.n_cards = self.n_cards_complete.copy()  # Number of each card in this deck
         self.cards = self.cards_complete.copy()  # Ordered list of cards in this deck
 
         # Shuffle the cards
         random.shuffle(self.cards)
 
-        print("Cards shuffled, top card: ", self.cards[0])
+        print("Cards shuffled, bottom card: ", self.cards[-1])
 
     def draw(self):
         card = self.cards.pop()
-        self.n_cards[card] += -1
         return card
 
     def size(self):
@@ -123,7 +119,6 @@ class State(object):
 
         for card in self.deck.unique_cards_complete:
             print("Card: ", card)
-            print("Deck: ", self.deck.n_cards[card])
             print("Disc: ", self.discarded[card])
             print("Play: ", self.played[card])
             print("")
