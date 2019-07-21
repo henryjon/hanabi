@@ -64,24 +64,25 @@ class Brain(object):
         else:
             raise Exception("Evidence type not recognised")
 
-    def update_on_opening_hands(self, your_opening_hand):
-
-        # I see your cards. I remove them from 'deck_or_mine'
-        # And if saturated I also remove them as candidates for my cards
-
-        for card in your_opening_hand:
-            if card not in self.deck_or_mine:
-                raise Exception(
-                    "A freshly dealt card was not considered possible, "
-                    + "i.e. in [deck_or_mine]"
-                )
-
-            self.deck_or_mine.remove(card)
-
+        # Update my card candidates based on newly drawn cards, if there were any
         for i in range(5):
             self.i_know[i] = [
                 card for card in self.i_know[i] if card in self.deck_or_mine
             ]
+
+    def update_on_opening_hands(self, your_opening_hand):
+        for card in your_opening_hand:
+            self.update_on_freshly_drawn_card(card)
+
+    def update_on_freshly_drawn_card(self, card):
+
+        # I see your new card. I remove it from 'deck_or_mine'
+        if card not in self.deck_or_mine:
+            raise Exception(
+                "A freshly dealt card was not considered possible, "
+                + "i.e. in [deck_or_mine]"
+            )
+        self.deck_or_mine.remove(card)
 
 
 class Player(object):
