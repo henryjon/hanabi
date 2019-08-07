@@ -2,11 +2,6 @@ import random
 
 # Two player hanabi
 
-# Raw data should be attributes
-# Anything that can be determined from raw data should be a method
-# However methods are calculated every time they are called
-# Wheras attributes are computed every time there is an update
-
 
 class Blueprints(object):
     def __init__(self):
@@ -31,8 +26,6 @@ class Deck(object):
         self.cards = self.blueprints.cards_complete.copy()
         random.shuffle(self.cards)
 
-        print("Cards shuffled, bottom card: ", self.cards[-1])
-
         self.most_recently_drawn_card = None
 
     def draw(self):
@@ -50,17 +43,18 @@ class Brain(object):
         self.cards_in_deck_or_my_hand = blueprints.cards_complete.copy()
 
         self.my_hand = [
-            {"candidates": blueprints.cards_complete.copy(), "age": None}
-            for i in range(5)
+            {"candidates": self.cards_in_deck_or_my_hand, "age": None} for _ in range(5)
         ]
 
-        self.your_hand = [{"i_know": None, "you_know": None, "playable": None}]
+        self.your_hand = [
+            {"card": None, "you_know": None, "age": None} for _ in range(5)
+        ]
 
         self.other_player_just_drew_a_card = False
 
         # And yes there's more but let's stop here
 
-    def update_on_new_card(self, card):
+    def update_on_new_card(self, card, position, table):
 
         if card not in self.cards_in_deck_or_my_hand:
             raise Exception(
@@ -71,11 +65,16 @@ class Brain(object):
         assert self.cards_in_deck_or_my_hand.remove(card) is None
 
         for i in range(5):
-            self.my_hand[i]["i_know"] = [
+            self.my_hand[i]["candidates"] = [
                 card
                 for card in self.my_hand[i]["candidates"]
                 if card in self.cards_in_deck_or_my_hand
             ]
+
+        self.your_hand[position]["card"] = card
+
+        self.your_hand[position]["age"] = 0
+        self.your_hand[position]["you_know"] = table.public_remaining_cards
 
     def i_have_playable_cards(self, table):
         is_card_playable = [
@@ -118,6 +117,7 @@ class Table(object):
         self.blueprints = blueprints
         self.played = {colour: 0 for colour in self.blueprints.colours}
         self.discarded = []
+        self.public_remaining_cards = self.blueprints.cards_complete
 
     def playable_cards(self):
 
@@ -170,7 +170,17 @@ class Game(object):
 
             print()
 
+        print("Deck")
         print(self.deck.cards)
+        print()
+
+        print("Played")
+        print(self.table.played)
+        print()
+
+        print("Discarded")
+        print(self.table.discarded)
+        print()
 
     def deal_cards(self):
 
@@ -181,7 +191,7 @@ class Game(object):
                 card = self.deck.most_recently_drawn_card
                 player.hand[i] = card
                 player.hand_age[i] = 0
-                self.other_player(player).brain.update_on_new_card(card)
+                self.other_player(player).brain.update_on_new_card(card, i, self.table)
 
     def play(self):
         self.deal_cards()
